@@ -97,4 +97,46 @@ public class ClientDB {
             }
         }
     }
+    // deposer Argent 
+    public boolean deposerArgent(String rib, float montant) throws SQLException {
+        String query = "UPDATE Compte SET solde = solde + ? WHERE rib = ?;";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setFloat(1, montant);
+            statement.setString(2, rib);
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0) {
+                return true; // success
+            } else {
+                return false; // not found
+            }
+        }
+    }
+    // retirer Argent 
+    public boolean retirerArgent(String rib, float montant) throws SQLException {
+        String checkbalancequery = "SELECT solde FROM Compte WHERE rib = ?;";
+        String retirerquery = "UPDATE Compte SET solde = solde - ? WHERE rib = ?;";
+        try (PreparedStatement checkStatement = connection.prepareStatement(checkbalancequery)) {
+            checkStatement.setString(1, rib);
+            try (ResultSet resultSet = checkStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    float solde = resultSet.getFloat("solde");
+                    if (solde >= montant) {
+                        try (PreparedStatement statement = connection.prepareStatement(retirerquery)) {
+                            statement.setFloat(1, montant);
+                            statement.setString(2, rib);
+                            int rowsUpdated = statement.executeUpdate();
+                            if (rowsUpdated > 0) {
+                                return true; 
+                            }
+                        }
+                    } else {
+                        return false; 
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    
 }
