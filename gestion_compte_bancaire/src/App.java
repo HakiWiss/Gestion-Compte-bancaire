@@ -34,7 +34,10 @@ public class App {
             // adminDB.insertClient(client);        // work
             // adminDB.updateClient(client2);       // work
             Client client1=adminDB.getClientById(1);
-            System.out.println("Client "+client1.getId()+": "+client1.getPrenom()+" "+client1.getNom());
+            if(client1!=null){
+              System.out.println("Client "+client1.getId()+": "+client1.getPrenom()+" "+client1.getNom());
+            }else{System.out.println("Client not found");}
+            
             // adminDB.insertCompte(crt);              // work
             // adminDB.insertCompte(etd);              // work
             // adminDB.UpdateCompte(etd);                 // work
@@ -46,8 +49,15 @@ public class App {
         if(IDCompte!=0){
             System.out.println("Compte "+IDCompte+" login success");
             clientdb=new ClientDB(cnxDb.getconnection());
-            
-            //get compte info ??
+            Compte compte1=clientdb.getCompteByRib("AE102");
+            if (compte1!=null) {
+              //if(compte1 instanceof Courant){}
+              System.out.println("Compte: "+compte1.getRib()+" avec le solde "+compte1.getSolde());
+            }
+            else{
+              System.out.println("compte not found");
+            }
+            //get comptes list ??
         }
         else{System.out.println("login failed ");}
     }
