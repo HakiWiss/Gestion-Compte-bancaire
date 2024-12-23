@@ -25,7 +25,7 @@ public class App {
         Courant crt=new Courant(1, "AE101", 0, "0000", 1, 0);
         Etudiant etd=new Etudiant(3, "AE102", 0, "1111", 1, 0);
         //checklogin
-        int IDAdmin=cnxDb.checkAdmin_cnx(101, "admin1010");
+        int IDAdmin=cnxDb.checkAdmin_cnx(101, "admin101");
         if(IDAdmin!=0){
             System.out.println("Admin "+IDAdmin+" login success");
             adminDB=new AdminDB(cnxDb.getconnection());
@@ -35,15 +35,18 @@ public class App {
             // adminDB.updateClient(client2);       // work
             Client client1=adminDB.getClientById(1);
             System.out.println("Client "+client1.getId()+": "+client1.getPrenom()+" "+client1.getNom());
+            // adminDB.insertCompte(crt);              // work
+            // adminDB.insertCompte(etd);              // work
+            // adminDB.UpdateCompte(etd);                 // work
+            // adminDB.DeleteCompte(etd);                 // work
         }
         else{System.out.println("login failed ");}
-        // cnxDb.insertCompte(etd);                 // work
-        // cnxDb.UpdateCompte(etd);                 // work
-        // cnxDb.DeleteCompte(etd);                 // work
+        
         int IDCompte=cnxDb.checkCompte_cnx("AE101", "0000");
         if(IDCompte!=0){
             System.out.println("Compte "+IDCompte+" login success");
             clientdb=new ClientDB(cnxDb.getconnection());
+            
             //get compte info ??
         }
         else{System.out.println("login failed ");}
