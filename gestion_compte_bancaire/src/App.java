@@ -53,6 +53,10 @@ public class App {
             if (compte1!=null) {
               //if(compte1 instanceof Courant){}
               System.out.println("Compte: "+compte1.getRib()+" avec le solde "+compte1.getSolde());
+              Releve releve=clientdb.retirerArgent(compte1, 200);
+              if(releve!=null){
+                System.out.println("Action: "+releve.getType()+" avec le Montant "+releve.getMontant());
+              }
             }
             else{
               System.out.println("compte not found");

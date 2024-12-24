@@ -2,7 +2,7 @@ package database;
 
 import java.sql.*;
 import java.util.ArrayList;
-
+import java.util.Date;
 import Model.*;
 
 public class ClientDB {
@@ -55,7 +55,7 @@ public class ClientDB {
         return null; // Return null if no record is found
     }
     // get comptes list
-    public ArrayList<Compte> getCompteByRib(int client_id) throws SQLException {
+    public ArrayList<Compte> getClientComptes(int client_id) throws SQLException {
         String query = "SELECT * FROM Compte c LEFT JOIN Courant cr ON c.id = cr.compte_id LEFT JOIN Etudiant e ON c.id = e.compte_id where c.client_id=?;";
         String type;
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -98,44 +98,77 @@ public class ClientDB {
         }
     }
     // deposer Argent 
-    public boolean deposerArgent(String rib, float montant) throws SQLException {
+    public Releve deposerArgent(Compte compte, float montant) throws SQLException {
         String query = "UPDATE Compte SET solde = solde + ? WHERE rib = ?;";
+        String releveQuery="INSERT INTO Releve(date,type,montant,compte_id) values(?,?,?,?);";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setFloat(1, montant);
-            statement.setString(2, rib);
+            statement.setString(2, compte.getRib());
             int rowsUpdated = statement.executeUpdate();
             if (rowsUpdated > 0) {
-                return true; // success
-            } else {
-                return false; // not found
+                java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
+                try(PreparedStatement statement2=connection.prepareStatement(releveQuery,Statement.RETURN_GENERATED_KEYS)){
+                    statement2.setDate(1, today); //error
+                    statement2.setString(2, "deposir");
+                    statement2.setFloat(3, montant);
+                    statement2.setInt(4, compte.getId());
+                    statement2.executeUpdate();
+                    try (ResultSet generatedKeys = statement2.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            int releveId = generatedKeys.getInt(1);
+                            return new Releve(
+                                releveId,
+                                today,
+                                "deposir",
+                                montant,
+                                compte.getId()
+                            );
+                        }
+                    }
+                }
             }
+            return null;
         }
     }
+
+    
     // retirer Argent 
-    public boolean retirerArgent(String rib, float montant) throws SQLException {
+    public Releve retirerArgent(Compte compte, float montant) throws SQLException {
         String checkbalancequery = "SELECT solde FROM Compte WHERE rib = ?;";
         String retirerquery = "UPDATE Compte SET solde = solde - ? WHERE rib = ?;";
+        String releveQuery="INSERT INTO Releve(date,type,montant,compte_id) values(?,?,?,?);";
         try (PreparedStatement checkStatement = connection.prepareStatement(checkbalancequery)) {
-            checkStatement.setString(1, rib);
+            checkStatement.setString(1, compte.getRib());
             try (ResultSet resultSet = checkStatement.executeQuery()) {
                 if (resultSet.next()) {
                     float solde = resultSet.getFloat("solde");
                     if (solde >= montant) {
                         try (PreparedStatement statement = connection.prepareStatement(retirerquery)) {
                             statement.setFloat(1, montant);
-                            statement.setString(2, rib);
+                            statement.setString(2, compte.getRib());
                             int rowsUpdated = statement.executeUpdate();
                             if (rowsUpdated > 0) {
-                                return true; 
+                                java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
+                                try(PreparedStatement statement2=connection.prepareStatement(releveQuery,Statement.RETURN_GENERATED_KEYS)){
+                                    statement2.setDate(1, today); //error
+                                    statement2.setString(2, "retirer");
+                                    statement2.setFloat(3, montant);
+                                    statement2.setInt(4, compte.getId());
+                                    statement2.executeUpdate();
+                                    try (ResultSet generatedKeys = statement2.getGeneratedKeys()) {
+                                        if (generatedKeys.next()) {
+                                            int releveId = generatedKeys.getInt(1);
+                                            return new Releve(releveId,today,"retirer",montant,compte.getId());
+                                        }
+                                    }
+                                }
                             }
                         }
-                    } else {
-                        return false; 
-                    }
+                    } 
                 }
             }
         }
-        return false;
+        return null;
     }
     
     
